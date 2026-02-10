@@ -48,6 +48,11 @@ func TestParse(t *testing.T) {
 	assert_matches_code(t, `理想汽車 <span type="security-tag" counter_id="ST/HK/2015" name="2015">$2015.HK</span> 升不足 1%，阿里巴巴 <span type="security-tag" counter_id="ST/US/BABA" name="BABA">$BABA.US</span> 升 1.06%。`, "理想汽車 (HK:2015) 升不足 1%，阿里巴巴 (US:BABA) 升 1.06%。")
 
 	assert_matches_code(t, `<span type="security-tag" counter_id="ST/US/XPEV" name="XPEV">$XPEV.US</span> 小鹏汽车除了吹牛还能干什么`, "$XPeng (XPEV.US)$ 小鹏汽车除了吹牛还能干什么")
+
+	// $Amazon.US 带 .US → 匹配
+	assert_matches_code(t, `<p>Alright, <span type="security-tag" counter_id="ST/US/Amazon" name="Amazon">$Amazon.US</span> reports after the bell tonight.</p>`, `<p>Alright, $Amazon.US reports after the bell tonight.</p>`)
+	// $Amazon 无 .US（小写）→ 不匹配，原样输出
+	assert_matches_code(t, `<p>Alright, $Amazon reports after the bell tonight.</p>`, `<p>Alright, $Amazon reports after the bell tonight.</p>`)
 }
 
 func TestXueqiuLaohuFutu(t *testing.T) {

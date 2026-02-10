@@ -27,6 +27,8 @@ const (
 	ruleStockName
 	ruleCode
 	ruleUSCode
+	ruleUSCodeUpper
+	ruleUSLetter
 	ruleHKCode
 	ruleACode
 	ruleHSCODE
@@ -52,6 +54,8 @@ var rul3s = [...]string{
 	"StockName",
 	"Code",
 	"USCode",
+	"USCodeUpper",
+	"USLetter",
 	"HKCode",
 	"ACode",
 	"HSCODE",
@@ -181,7 +185,7 @@ type StockCodeParser struct {
 
 	Buffer string
 	buffer []rune
-	rules  [22]func() bool
+	rules  [24]func() bool
 	parse  func(rule ...int) error
 	reset  func()
 	Pretty bool
@@ -725,7 +729,7 @@ func (p *StockCodeParser) Init(options ...func(*StockCodeParser) error) error {
 												goto l22
 											}
 											position++
-											if !_rules[ruleUSCode]() {
+											if !_rules[ruleUSCodeUpper]() {
 												goto l22
 											}
 										default:
@@ -887,7 +891,7 @@ func (p *StockCodeParser) Init(options ...func(*StockCodeParser) error) error {
 			position, tokenIndex = position59, tokenIndex59
 			return false
 		},
-		/* 8 USCode <- <('.'? Letter+)> */
+		/* 8 USCode <- <('.'? USLetter+)> */
 		func() bool {
 			position64, tokenIndex64 := position, tokenIndex
 			{
@@ -903,13 +907,13 @@ func (p *StockCodeParser) Init(options ...func(*StockCodeParser) error) error {
 					position, tokenIndex = position66, tokenIndex66
 				}
 			l67:
-				if !_rules[ruleLetter]() {
+				if !_rules[ruleUSLetter]() {
 					goto l64
 				}
 			l68:
 				{
 					position69, tokenIndex69 := position, tokenIndex
-					if !_rules[ruleLetter]() {
+					if !_rules[ruleUSLetter]() {
 						goto l69
 					}
 					goto l68
@@ -921,6 +925,67 @@ func (p *StockCodeParser) Init(options ...func(*StockCodeParser) error) error {
 			return true
 		l64:
 			position, tokenIndex = position64, tokenIndex64
+			return false
+		},
+		/* 8b USCodeUpper <- <('.'? Letter+)> */
+		func() bool {
+			position64u, tokenIndex64u := position, tokenIndex
+			{
+				position65u := position
+				{
+					position66u, tokenIndex66u := position, tokenIndex
+					if buffer[position] != rune('.') {
+						goto l66u
+					}
+					position++
+					goto l67u
+				l66u:
+					position, tokenIndex = position66u, tokenIndex66u
+				}
+			l67u:
+				if !_rules[ruleLetter]() {
+					goto l64u
+				}
+			l68u:
+				{
+					position69u, tokenIndex69u := position, tokenIndex
+					if !_rules[ruleLetter]() {
+						goto l69u
+					}
+					goto l68u
+				l69u:
+					position, tokenIndex = position69u, tokenIndex69u
+				}
+				// ![a-z]：后面不能跟小写，避免 $Amazon 只匹配成 $A
+				if position < uint32(len(buffer)) {
+					if c := buffer[position]; c >= rune('a') && c <= rune('z') {
+						goto l64u
+					}
+				}
+				add(ruleUSCodeUpper, position65u)
+			}
+			return true
+		l64u:
+			position, tokenIndex = position64u, tokenIndex64u
+			return false
+		},
+		/* 8a USLetter <- <[A-Za-z]> */
+		func() bool {
+			position78, tokenIndex78 := position, tokenIndex
+			{
+				position79 := position
+				c := buffer[position]
+				if c < rune('A') || c > rune('Z') {
+					if c < rune('a') || c > rune('z') {
+						goto l78
+					}
+				}
+				position++
+				add(ruleUSLetter, position79)
+			}
+			return true
+		l78:
+			position, tokenIndex = position78, tokenIndex78
 			return false
 		},
 		/* 9 HKCode <- <Number+> */
