@@ -121,7 +121,7 @@ func (p *parser) parseStock(node *node32) (code, market, match string) {
 	subNode := node.up
 	for subNode != nil {
 		switch subNode.pegRule {
-		case ruleCode, ruleUSCode:
+		case ruleCode, ruleUSCode, ruleUSCodeUpper:
 			code = r.str(subNode)
 		case ruleMarket:
 			market = r.str(subNode)

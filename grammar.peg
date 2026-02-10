@@ -22,8 +22,8 @@ Stock <- (
   # BABA.US 700.HK
   ' '+ Code Suffix /
 
-  # $BABA
-  '$' USCode /
+  # $BABA（无后缀仅允许大写；$+小写必须带 .US 才在上一行匹配）
+  '$' USCodeUpper /
 
   # (NYSE: A)
   '(' ('NYSE' / 'NASDAQ') ('：' / ':') SP* USCode ')' /
@@ -46,7 +46,11 @@ StockName <- [^"()"]*
 
 Code <- (USCode / HKCode / ACode)
 
-USCode <- '.'?Letter+
+# 美股代码允许大小写字母（如 Amazon、BABA），仅当带 Suffix（如 .US）时用
+USCode <- '.'?USLetter+
+USLetter <- [A-Za-z]
+# 无后缀的 $xxx 只匹配大写，且后面不能跟小写（避免 $Amazon 只匹配成 $A）
+USCodeUpper <- '.'?Letter+ ![a-z]
 HKCode <- Number+
 ACode <- Number+
 
